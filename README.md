@@ -19,7 +19,6 @@ To run this project, you'll need:
 2. **Required Python packages**:
    - xmltodict: For parsing XML data
    - pandas: For data manipulation
-   - gpxpy: For parsing GPS workout routes
    - matplotlib: For data visualization
    - pytz: For timezone handling
 3. **Apple Health Export**: You need to export your Apple Health data from your iOS device.
@@ -48,7 +47,7 @@ To run this project, you'll need:
 
 4. **Install required packages**:
    ```
-   pip install xmltodict pandas gpxpy matplotlib pytz
+   pip install xmltodict pandas matplotlib pytz
    ```
 
 5. **Prepare your data**:

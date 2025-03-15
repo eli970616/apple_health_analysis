@@ -5,28 +5,23 @@ This script processes and analyzes Apple Health data exported from an iOS device
 
 Features:
 1. Parses the Apple Health export XML (export.xml) to extract health records.
-2. Reads ECG CSV files from the 'electrocardiograms' folder.
-3. Reads GPX workout routes from the 'workout-routes' folder.
-4. Analyzes and visualizes daily energy burned since January 1, 2025, with a 7-day rolling average.
-5. Analyzes and visualizes daily sleep duration since January 1, 2025, with a 7-day rolling average.
+2. Analyzes and visualizes daily energy burned since January 1, 2025, with a 7-day rolling average.
+3. Analyzes and visualizes daily sleep duration since January 1, 2025, with a 7-day rolling average.
 
 Usage:
-- Ensure the paths to the export.xml, ECG folder, and GPX folder are correctly set.
+- Ensure the path to the export.xml file is correctly set.
 - Run the script to generate visualizations and summaries of the data.
-- The plots are saved to the desktop as PNG files.
+- The plots are saved to the current folder.
 
 Dependencies:
 - xmltodict
 - pandas
-- gpxpy
 - matplotlib
 
 """
 
 import xmltodict
 import pandas as pd
-import gpxpy
-import glob
 import matplotlib.pyplot as plt
 from pytz import timezone
 import xml.etree.ElementTree as ET
@@ -60,54 +55,6 @@ def parse_apple_health_export_xml(xml_path):
 
     df = pd.DataFrame(parsed_records)
     return df
-
-def parse_ecg_csvs(ecg_folder_path):
-    """
-    Reads all CSV files in the ECG folder and returns a combined DataFrame.
-    """
-    csv_files = glob.glob(ecg_folder_path + "/*.csv")
-    df_list = []
-
-    for csv_file in csv_files:
-        temp_df = pd.read_csv(csv_file)
-        # If needed, rename columns or parse date columns here
-        df_list.append(temp_df)
-
-    if df_list:
-        combined_ecg_df = pd.concat(df_list, ignore_index=True)
-    else:
-        combined_ecg_df = pd.DataFrame()
-
-    return combined_ecg_df
-
-def parse_gpx_files(gpx_folder_path):
-    """
-    Reads all .gpx route files in the folder and returns a list of DataFrames
-    (one DataFrame per route). Each DataFrame includes lat, lon, elevation, time.
-    """
-    gpx_files = glob.glob(gpx_folder_path + "/*.gpx")
-    route_dfs = []
-
-    for gpx_file in gpx_files:
-        with open(gpx_file, 'r', encoding='utf-8') as file:
-            gpx_data = gpxpy.parse(file)
-
-        route_points = []
-        for track in gpx_data.tracks:
-            for segment in track.segments:
-                for point in segment.points:
-                    route_points.append({
-                        'latitude': point.latitude,
-                        'longitude': point.longitude,
-                        'elevation': point.elevation,
-                        'time': point.time
-                    })
-
-        route_df = pd.DataFrame(route_points)
-        route_df['filename'] = gpx_file
-        route_dfs.append(route_df)
-
-    return route_dfs
 
 def generate_sleep_csv(health_df):
     sleep_data = health_df[(health_df['type'] == 'HKCategoryTypeIdentifierSleepAnalysis') & (health_df['startDate'] >= '2025-01-01')]
@@ -287,26 +234,12 @@ if __name__ == "__main__":
     health_df = parse_apple_health_export_xml(xml_file_path)
     print("Health records loaded:", len(health_df))
 
-    # 2) Parse ECG data CSVs
-    ecg_df = parse_ecg_csvs("electrocardiograms")
-    print("ECG records loaded:", len(ecg_df))
-
-    # 3) Parse GPX workout routes
-    route_dataframes = parse_gpx_files("workout-routes")
-    print("Total GPX routes loaded:", len(route_dataframes))
-
     #--- EXAMPLE: Summaries and Quick Analyses ---
 
     # Example A: Count how many records of each type in health_df
     if not health_df.empty:
         print("\nTop 5 record types:")
         print(health_df['type'].value_counts().head())
-
-    # Example C: If we have at least one GPX route, preview the first few lines
-    if route_dataframes:
-        first_route = route_dataframes[0]
-        print("\nSample GPX route data (first 5 points):")
-        print(first_route.head())
 
     # Example D: Summarize daily energy burned since 2025/1/1
     energy_data = health_df[(health_df['type'] == 'HKQuantityTypeIdentifierActiveEnergyBurned') & (health_df['startDate'] >= '2025-01-01')]
