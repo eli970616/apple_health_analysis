@@ -53,8 +53,6 @@ To run this project, you'll need:
 
 5. **Prepare your data**:
    - Place your "export.xml" file in a known location
-   - If you have ECG data, create an "electrocardiograms" folder and place the CSV files there
-   - If you have workout routes, create a "workout-routes" folder and place the GPX files there
 
 ## How to Run
 
